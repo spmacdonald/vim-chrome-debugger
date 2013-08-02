@@ -1,12 +1,12 @@
 package main
 
 import (
-    "fmt"
+    /* "fmt" */
     "log"
     "strconv"
     "encoding/json"
     "net/http"
-    /* "code.google.com/p/go.net/websocket" */
+    "code.google.com/p/go.net/websocket"
 )
 
 
@@ -15,7 +15,20 @@ type Page struct {
 }
 
 
-func connectToChrome(host string, port int, tab int) {
+type Request struct {
+    Id int `json:"id"`
+    Method string `json:"method"`
+    Params map[string]interface{} `json:"params"`
+}
+
+
+type Response struct {
+    Id int `json:"id"`
+    Error interface{} `json:"Error"`
+}
+
+
+func connectToChrome(host string, port int, tab int) *websocket.Conn {
 
     address := host + ":" + strconv.Itoa(port) + "/json"
     resp, err := http.Get(address)
@@ -31,10 +44,44 @@ func connectToChrome(host string, port int, tab int) {
         log.Fatal(err)
     }
 
-    fmt.Println(pages)
+    url := pages[tab].WsUrl
+    ws, err := websocket.Dial(url, "", "http://localhost/")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    return ws
 }
+
+
+func listenWs(ws *websocket.Conn) {
+    for {
+        var x []byte
+        err := websocket.Message.Receive(ws, &x)
+        if err != nil {
+            log.Fatal(err)
+        }
+
+        log.Print(x)
+    }
+
+    ws.Close()
+}
+
 
 func main() {
 
-    connectToChrome("http://localhost", 9222, 0)
+    ws := connectToChrome("http://localhost", 9222, 0)
+    go listenWs(ws)
+
+    req := Request{Id: 1, Method: "Page.enable"}
+    /* req := Request{Id: 1, Method: "Page.reload"} */
+    websocket.JSON.Send(ws, req)
+
+    var resp Response
+    websocket.JSON.Receive(ws, &resp)
+
+    log.Print(resp)
+
+    select {}
 }
