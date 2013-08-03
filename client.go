@@ -1,4 +1,4 @@
-package main
+package foo
 
 import (
     /* "fmt" */
@@ -56,8 +56,8 @@ func connectToChrome(host string, port int, tab int) *websocket.Conn {
 
 func listenWs(ws *websocket.Conn) {
     for {
-        var x []byte
-        err := websocket.Message.Receive(ws, &x)
+        var x interface{}
+        err := websocket.JSON.Receive(ws, &x)
         if err != nil {
             log.Fatal(err)
         }

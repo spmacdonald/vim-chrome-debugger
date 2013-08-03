@@ -1,0 +1,3 @@
+https://github.com/minikomi/pipesock/blob/master/pipesock.go
+https://github.com/clehner/node-vim-netbeans
+https://github.com/cyrus-and/chrome-remote-interface
